@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const mediumLabel = document.getElementById("medium_label");
     const hardlabel = document.getElementById("high_label");
     const loader = document.getElementById("loader");
-    const statscontainer = document.querySelector(".stats");
+
     function validateusername(username) {
         if (username.trim() === "") {
             alert("Username should not be empty");
@@ -24,10 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
             searchbutton.disabled = true;
             loader.style.display = "block";
 
-            const proxyurl = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = 'https://leetcode.com/graphql/';
-            const myHeaders = new Headers();
-            myHeaders.append('content-type', 'application/json');
+            const targetUrl = "https://leetcode.com/graphql/";
 
             const graphQL = JSON.stringify({
                 query: `
@@ -47,41 +44,38 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                     }
                 `,
-                variables: { "username": username }
+                variables: { username: username }
             });
 
-            const requestOptions = {
-                method: "POST",
-                headers: myHeaders,
-                body: graphQL,
-                redirect: "follow"
-            };
+            // ✅ WORKING POST PROXY
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
 
-            const response = await fetch(proxyurl + targetUrl, requestOptions);
-            const text = await response.text();
-            let parsedata;
-            try {
-                parsedata = JSON.parse(text);
-            } catch (parseError) {
-                console.error("Failed to parse JSON:", text);
-                alert("Received invalid response from server. Check console for details.");
-                return;
-            }
-            console.log("Full API response:", parsedata);
+            const response = await fetch(proxyUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: graphQL
+            });
+
             if (!response.ok) {
-                console.error("Network error:", response.status, response.statusText);
                 alert(`Network error: ${response.status} ${response.statusText}`);
                 return;
             }
+
+            const parsedata = await response.json();
+            console.log("Full API response:", parsedata);
+
             if (!parsedata.data || !parsedata.data.matchedUser) {
-                alert("User not found or API response format has changed. Check console for details.");
-                console.error("API response missing expected data:", parsedata);
+                alert("User not found or API response format changed.");
                 return;
             }
+
             displayuserdata(parsedata);
+
         } catch (error) {
             console.error("Fetch error:", error);
-            alert("Error fetching data. Check console for details.");
+            alert("Error fetching data. Check console.");
         } finally {
             loader.style.display = "none";
             searchbutton.textContent = "Search";
@@ -96,37 +90,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function displayuserdata(parsedata) {
-    const totalQuestions = parsedata.data.allQuestionsCount;
-    const submissions = parsedata.data.matchedUser.submitStats.acSubmissionNum;
+        const totalQuestions = parsedata.data.allQuestionsCount;
+        const submissions = parsedata.data.matchedUser.submitStats.acSubmissionNum;
 
-    progressUpdate(submissions[1].count, totalQuestions[1].count, easyLabel, easyprogresscircle);
-    progressUpdate(submissions[2].count, totalQuestions[2].count, mediumLabel, mediumprogresscircle);
-    progressUpdate(submissions[3].count, totalQuestions[3].count, hardlabel, hardprogresscircle);
+        progressUpdate(submissions[1].count, totalQuestions[1].count, easyLabel, easyprogresscircle);
+        progressUpdate(submissions[2].count, totalQuestions[2].count, mediumLabel, mediumprogresscircle);
+        progressUpdate(submissions[3].count, totalQuestions[3].count, hardlabel, hardprogresscircle);
 
-    const carddata = [
-        { label: "Total Submission", value: submissions[0].submissions },
-        { label: "Total Easy Submission", value: submissions[1].submissions },
-        { label: "Total Medium Submission", value: submissions[2].submissions },
-        { label: "Total Hard Submission", value: submissions[3].submissions },
-    ];
+        const carddata = [
+            { label: "Total Submission", value: submissions[0].submissions },
+            { label: "Total Easy Submission", value: submissions[1].submissions },
+            { label: "Total Medium Submission", value: submissions[2].submissions },
+            { label: "Total Hard Submission", value: submissions[3].submissions },
+        ];
 
-    console.log("card", carddata);
-
-    const statsCardContainer = document.querySelector(".stats_card");
-    statsCardContainer.innerHTML = carddata.map(data => {
-        return `
+        const statsCardContainer = document.querySelector(".stats_card");
+        statsCardContainer.innerHTML = carddata.map(data => `
             <div class="card">
                 <h3>${data.label}</h3>
                 <p>${data.value}</p>
             </div>
-        `;
-    }).join('');
-}
+        `).join('');
+    }
 
-
-    searchbutton.addEventListener('click', function () {
+    searchbutton.addEventListener("click", function () {
         const username = usernameinput.value;
-        console.log("logging in", username);
         if (validateusername(username)) {
             fetchuserdetail(username);
         }
