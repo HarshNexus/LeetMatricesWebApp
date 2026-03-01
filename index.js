@@ -48,13 +48,13 @@ document.addEventListener("DOMContentLoaded", function () {
             // ✅ Your backend proxy (change to Render URL after deployment)
             const proxyUrl = "http://localhost:3000/api/leetcode";
 
-            const response = await fetch(proxyUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: graphQL
-            });
+            const response = await fetch("https://leetmatriceswebapp-01.onrender.com/api/leetcode", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: graphQL
+});
 
             if (!response.ok) {
                 alert(`Network error: ${response.status} ${response.statusText}`);
