@@ -24,8 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
             searchbutton.disabled = true;
             loader.style.display = "block";
 
-            const targetUrl = "https://leetcode.com/graphql/";
-
             const graphQL = JSON.stringify({
                 query: `
                     query userSessionProgress($username: String!) {
@@ -47,8 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 variables: { username: username }
             });
 
-            // ✅ WORKING POST PROXY
-            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+            // ✅ Your backend proxy (change to Render URL after deployment)
+            const proxyUrl = "http://localhost:3000/api/leetcode";
 
             const response = await fetch(proxyUrl, {
                 method: "POST",
